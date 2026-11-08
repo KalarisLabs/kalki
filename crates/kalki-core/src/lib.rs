@@ -31,6 +31,12 @@ pub enum CoreError {
     /// I/O failure.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    /// Provider layer failure (config, wire, stream). Never the WAL's fault.
+    #[error("provider error: {0}")]
+    Provider(String),
+    /// Invalid or missing user configuration (policy file, env vars).
+    #[error("configuration error: {0}")]
+    Config(String),
     /// JSON (de)serialization failure.
     #[error("serialization error: {0}")]
     Json(#[from] serde_json::Error),

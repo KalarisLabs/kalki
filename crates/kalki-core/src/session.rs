@@ -1,4 +1,4 @@
-//! Session FSM: attach → turn loop (model → tools → WAL events) → close.
+//! Session FSM: attach â†’ turn loop (model â†’ tools â†’ WAL events) â†’ close.
 //! v0.2: one-shot headless run used by `kalki run -p`. Daemon/reattach: v0.2.x work.
 
 use std::collections::HashMap;
@@ -248,7 +248,7 @@ fn abort_run(
     }
 }
 
-/// The session loop: user objective → model turns interleaved with gated tool calls → WAL.
+/// The session loop: user objective â†’ model turns interleaved with gated tool calls â†’ WAL.
 ///
 /// # Errors
 /// Provider stream or WAL failures abort the run; the WAL keeps what happened.
@@ -413,10 +413,7 @@ pub async fn run_from_env(
     workspace: PathBuf,
 ) -> Result<RunOutcome, CoreError> {
     let policy = default_policy()?;
-    let provider = AnyProvider::from_env().map_err(|e| CoreError::WalCorruption {
-        offset: 0,
-        reason: format!("provider init: {e}"),
-    })?;
+    let provider = AnyProvider::from_env().map_err(|e| CoreError::Provider(e.to_string()))?;
     let opts = RunOptions {
         workspace,
         provider,
@@ -456,10 +453,7 @@ commands = ["rm", "rmdir", "del", "mkfs", "dd", "shutdown"]
             .join("policy.toml")
     };
     let toml = std::fs::read_to_string(&global).unwrap_or_else(|_| preamble.to_string());
-    PolicyEngine::from_toml_str(&toml).map_err(|e| CoreError::WalCorruption {
-        offset: 0,
-        reason: format!("policy: {e}"),
-    })
+    PolicyEngine::from_toml_str(&toml).map_err(|e| CoreError::Config(format!("policy: {e}")))
 }
 
 async fn execute_tool<P: Provider>(
