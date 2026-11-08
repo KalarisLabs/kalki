@@ -21,6 +21,8 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 axum.workspace = true
 thiserror.workspace = true
+toml = "1.2.1"
+crc32c = "0.6.9"
 
 [lints]
 workspace = true

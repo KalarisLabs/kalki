@@ -46,6 +46,62 @@ pub enum Event {
         /// "created" | "attached" | "detached" | `crash_recovered` | "closed"
         state: String,
     },
+    /// A tool-call intent issued by the model.
+    #[serde(rename = "4")]
+    ToolCall {
+        /// Milliseconds since epoch, UTC.
+        ts_ms: u64,
+        /// Monotonic sequence number within the session.
+        seq: u64,
+        /// Call id (provider-assigned or generated).
+        id: String,
+        /// Tool name (e.g. `bash`, `apply_patch`).
+        name: String,
+        /// Raw JSON arguments as sent by the model.
+        arguments_json: String,
+    },
+    /// The result of a tool call (or its outbound blob reference).
+    #[serde(rename = "5")]
+    ToolResult {
+        /// Milliseconds since epoch, UTC.
+        ts_ms: u64,
+        /// Monotonic sequence number within the session.
+        seq: u64,
+        /// Matching `ToolCall::id`.
+        id: String,
+        /// Content-addressed handle for the full output (blob store).
+        handle: String,
+        /// Process exit code when applicable (shell tools).
+        exit_code: Option<i64>,
+        /// Total output size in bytes.
+        bytes: u64,
+    },
+    /// Provider token usage for a model call (cost accounting).
+    #[serde(rename = "6")]
+    Usage {
+        /// Milliseconds since epoch, UTC.
+        ts_ms: u64,
+        /// Monotonic sequence number within the session.
+        seq: u64,
+        /// Provider wire used (`openai_responses` | `anthropic_messages` | `openai_compat`).
+        provider: String,
+        /// Prompt/input tokens consumed (post-breakpoint for cached models).
+        input_tokens: u64,
+        /// Completion/output tokens generated.
+        output_tokens: u64,
+        /// Tokens served from the provider prompt cache, when reported.
+        cached_tokens: Option<u64>,
+    },
+    /// Snapshot anchor marker written when a checkpoint snapshot lands.
+    #[serde(rename = "7")]
+    Anchor {
+        /// Milliseconds since epoch, UTC.
+        ts_ms: u64,
+        /// Sequence number covered by the snapshot at this point.
+        seq: u64,
+        /// Hex SHA-256 of the snapshot's canonical bytes (see `kalki-core::snapshot`).
+        anchor_hash: String,
+    },
 }
 
 /// Hash-chained record header for the audit/WAL layer.

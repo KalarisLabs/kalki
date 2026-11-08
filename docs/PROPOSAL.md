@@ -73,7 +73,7 @@ Rust 1.88 workspace, Cargo-enforced one-way graph (ADR-0001):
 kalki-protocol → kalki-core → { kalki CLI, kalki-tui (M2) }   xtask (automation)
 ```
 
-Single static musl binary (Linux x86_64/aarch64), macOS universal, Windows x86_64 beta; cargo-dist releases; npm shim `@kalarislabs/kalki-code`; Homebrew tap; `curl | sh` at kalarislabs.com (§7 for exact launch commands). Size target < 30 MB stripped; cold start < 60 ms.
+Single static musl binary (Linux x86_64/aarch64), macOS universal, Windows x86_64 beta; **distribution for v0.x is GitHub Releases only** (`cargo dist` + minisign); `kalarislabs.com` links the release page. Size target < 30 MB stripped; cold start < 60 ms.
 
 ### 4.2 Process model — crash-only, reattachable
 
@@ -154,25 +154,27 @@ DEPENDENCIES.md (committed): exact locked versions, 11-column decision table, ba
 
 ### 6.2 Release & version-launch commands (verified mechanics)
 
-One-time: Homebrew tap repo `homebrew-kalarislabs`; `HOMEBREW_TAP_TOKEN`; crates.io trusted publishing (GitHub OIDC, `id-token: write`); npm scope `@kalarislabs`; minisign keypair (public key at kalarislabs.com); installers hosted at `releases.kalarislabs.com` + GitHub Releases (5 targets); first publish of each crate manual, then per-crate trusted publisher.
+One-time: create the GitHub release flow — tag-driven `release.yml` via `cargo dist` (GitHub Releases: 5 targets + SHA256SUMS + minisign sidecars + SBOM + attestations); minisign keypair (public key committed at `kalarislabs.com/kalki.pub`). No Homebrew, npm, crates.io, MSI/DEB/RPM in v0.x. Windows beta artifacts attached to the same release.
 
 Per release (maintainer machine):
 
 ```bash
-cargo release minor --execute          # bumps, tags v0.2.0, changelog (git-cliff), publishes crates.io in order
-cargo dist build --tag v0.2.0          # binaries + installers + SBOM (CycloneDX) + SHA256SUMS + minisign
-cargo dist publish                     # GitHub Release + Homebrew formula push
-npm publish --provenance               # @kalarislabs/kalki-code shim (Trusted Publishing, auto-provenance)
-kalki doctor --release-smoke           # scripted sanity: install → first-run → one turn → audit verify
-gh attestation verify dist/kalki.tar.gz --owner Kalaris-Labs
-minisign -Vm kalki.tar.gz -p kalarislabs.com/kalki.pub
+# pre-flight: DCO clean, xtask ci green, ROADMAP checkboxes ticked
+git tag -s v0.2.0 -m "kalki v0.2.0"                    # signed tag
+git push origin v0.2.0                                   # triggers release.yml
+cargo dist build --tag v0.2.0                             # binaries (5 targets) + SBOM + SHA256SUMS + minisign
+# release.yml creates the GitHub Release, attaches assets, posts changelog section
+gh release view v0.2.0 --web                              # verify; publish draft
+gh attestation verify dist/kalki-x86_64-unknown-linux-musl.tar.gz --owner Kalaris-Labs
+minisign -Vm kalki-x86_64-unknown-linux-musl.tar.gz -p docs/kalki.pub
+kalki doctor --release-smoke                               # install → first turn → audit verify
 ```
 
 Nightly: `vX.Y.Z-nightly` rolling pre-release (Prime Agent pattern). MSRV: 1.88 (bump via ADR only).
 
 ### 6.3 Distribution matrix
 
-`curl|sh` (Linux/macOS, R2-backed + GitHub fallback) · `irm|iex` (Windows beta) · Homebrew tap · `@kalarislabs/kalki-code` npm shim (aliased optionalDependencies, no postinstall) · `cargo install kalki` · DEB/RPM/MSI via cargo-dist+nfpm (institutions) · distroless container · flake.nix.
+**GitHub Releases, v0.x only.** Assets: `kalki-{x86_64,aarch64}-unknown-linux-musl.tar.gz`, `kalki-{x86_64,aarch64}-apple-darwin.tar.gz`, `kalki-x86_64-pc-windows-msvc.zip` (beta), `SHA256SUMS`, `minisign.sig`, `sbom.cdx.json`. crates.io / npm / Homebrew / distro packages: intentionally out of scope for v0.x; revisited at 1.0.
 
 ---
 
@@ -202,7 +204,7 @@ Deny-first policy TOML (v1) → Cedar decision engine (v1.5+, `cedar-policy` Apa
 
 ## 10. Risks & open problems
 
-1. No public 1000-hour run exists (ours would be the first). 2. Prime Agent/Harness² numbers unreplicated; adopt mechanisms, not claims. 3. Evaluator collapse is the existential risk — hvtb-10 + independent judge + rollback are load-bearing, not optional. 4. Windows sandbox parity is genuinely hard (WSL2 crutch; MXC unreleased). 5. WAL hash-chain detects tampering, not root/WORM attackers — document honestly. 6. gix status perf inconsistencies reported on some trees — benchmark before merge; CLI fallback retained. 7. Dependency churn: async-openai quarantined (ADR-0002); Temporal Rust GA'd Sept 2026 but we DIY for v1. 8. Keyring behaviors differ across platforms — CI-tested matrix. 9. "Kalki" trademark clearance required (cultural overload) — run clearance search before printing.
+1. No public 1000-hour run exists (ours would be the first). 2. Prime Agent/Harness² numbers unreplicated; adopt mechanisms, not claims. 3. Evaluator collapse is the existential risk — hvtb-10 + independent judge + rollback are load-bearing, not optional. 4. Windows sandbox parity is genuinely hard (WSL2 crutch; MXC unreleased). 5. WAL hash-chain detects tampering, not root/WORM attackers — document honestly. 6. gix status perf inconsistencies reported on some trees — benchmark before merge; CLI fallback retained. 7. Dependency churn: async-openai quarantined (ADR-0002); Temporal Rust GA'd Sept 2026 but we DIY for v1. 8. Keyring behaviors differ across platforms - CI-tested matrix. 9. Release channel decision (2026-11-08): GitHub Releases only for v0.x; other channels deferred to 1.0.
 
 ---
 

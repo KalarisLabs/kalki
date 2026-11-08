@@ -24,6 +24,9 @@ Exact versions = `Cargo.lock`-resolved as of 2026-11-08. All Rust deps are MSRV-
 | thiserror | 2.0.21 | typed errors (libraries) | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | manual impls | No | Sayan Chowdhury | 2027-05-08 |
 | anyhow | 1.0.104 | error glue (binary only, never in libs) | Required (bin) | MIT / Apache-2.0 | Linux / macOS / Windows | Low | eyre | No | Sayan Chowdhury | 2027-05-08 |
 
+| TOML config + policy engine files | toml 1.2.1 | Parse workspace `.kalki.toml`, XDG config, and the deny-first policy TOML (v1; Cedar comes in v1.5+) | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | hand-rolled parser (rejected — why? toml is tiny and spec-pinned) | No | Sayan Chowdhury | 2027-02-08 |
+| crc32c | 0.6.9 | CRC-32C checksums for WAL record torn-write detection | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | `crc` crate (not chosen — crc32c matches RFC 3720/SCTP framing lineage) | No | Sayan Chowdhury | 2027-05-08 |
+
 ## Git integration (decided, adopt at M2) — benchmark gate before merge
 
 | Dependency | Exact version | Purpose | Required / Optional | License | OS support | Security risk | Fallback | Benchmark needed | Owner | Removal / Review |
