@@ -1,4 +1,4 @@
-//! `kalki` — the Kalki Code CLI. v0.2: doctor; `run` wires in after the P3/P7 merge.
+//! `kalki` — the Kalki Code CLI. v0.2: doctor + run (headless one-shot).
 
 #![forbid(unsafe_code)]
 
@@ -20,7 +20,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Run environment diagnostics (git, disk, provider keys, WAL).
+    /// Run environment diagnostics (git, provider keys, WAL).
     Doctor,
     /// Run one session against the configured provider and print the outcome.
     Run {
@@ -65,6 +65,7 @@ fn main() -> anyhow::Result<()> {
                 "OPENAI_API_KEY",
                 "ANTHROPIC_API_KEY",
                 "OPENAI_COMPAT_API_KEY",
+                "KALKI_PROVIDER",
             ] {
                 println!(
                     "env {var}: {}",
@@ -76,19 +77,30 @@ fn main() -> anyhow::Result<()> {
                 );
             }
             println!("sessions: {}", session_dir().display());
-            println!("status: v0.2 scaffold — session loop landing on main behind green CI");
+            println!("status: v0.2 — one-shot session loop live (`kalki run -p ...`)");
         }
         Commands::Run {
             objective,
             model,
             max_turns,
         } => {
-            let _ = (objective, model, max_turns);
-            eprintln!(
-                "kalki run: the v0.2 session loop lands on main after the impl branches merge (CHANGELOG.md, ROADMAP.md).\n\
-                 Track progress: git log main; final wiring happens in the merge milestone."
+            let model = model
+                .or_else(|| std::env::var("KALKI_MODEL").ok())
+                .unwrap_or_else(|| "gpt-5.6".to_string());
+            let workspace = std::env::current_dir()?;
+            let rt = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()?;
+            let outcome = rt.block_on(kalki_core::session::run_from_env(
+                objective, model, max_turns, workspace,
+            ))?;
+            println!(
+                "\n=== session {} ({} turns{}): ===\n{}",
+                outcome.session_id,
+                outcome.turns,
+                if outcome.aborted { ", aborted" } else { "" },
+                outcome.final_text
             );
-            std::process::exit(2);
         }
     }
     Ok(())

@@ -289,3 +289,46 @@ pub(crate) mod wire_openai;
 pub use wire_anthropic::AnthropicMessagesProvider;
 pub use wire_compat::OpenAiCompatProvider;
 pub use wire_openai::OpenAiResponsesProvider;
+
+/// Provider selection across the three wires (CLI entry point).
+#[must_use]
+pub enum AnyProvider {
+    /// `OpenAI Responses` wire.
+    OpenAiResponses(OpenAiResponsesProvider),
+    /// Anthropic Messages wire.
+    Anthropic(AnthropicMessagesProvider),
+    /// OpenAI-compatible Chat Completions wire.
+    Compat(OpenAiCompatProvider),
+}
+
+impl Provider for AnyProvider {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::OpenAiResponses(_) => "openai_responses",
+            Self::Anthropic(_) => "anthropic_messages",
+            Self::Compat(_) => "openai_compat",
+        }
+    }
+
+    async fn open(&self, request: ChatRequest) -> Result<ProviderStream, ProviderError> {
+        match self {
+            Self::OpenAiResponses(p) => p.open(request).await,
+            Self::Anthropic(p) => p.open(request).await,
+            Self::Compat(p) => p.open(request).await,
+        }
+    }
+}
+
+impl AnyProvider {
+    /// Select the wire from `KALKI_PROVIDER` (`openai_responses` | `anthropic_messages` | `openai_compat`).
+    ///
+    /// # Errors
+    /// Missing config for the selected wire.
+    pub fn from_env() -> Result<Self, ProviderError> {
+        match std::env::var("KALKI_PROVIDER").as_deref() {
+            Ok("anthropic_messages") => Ok(Self::Anthropic(AnthropicMessagesProvider::from_env()?)),
+            Ok("openai_compat") => Ok(Self::Compat(OpenAiCompatProvider::from_env()?)),
+            _ => Ok(Self::OpenAiResponses(OpenAiResponsesProvider::from_env()?)),
+        }
+    }
+}
