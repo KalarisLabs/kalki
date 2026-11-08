@@ -2,6 +2,17 @@
 
 #![forbid(unsafe_code)]
 
+pub mod blob;
+/// Policy engine (deny-first, TOML).
+pub mod policy;
+/// Provider wires (OpenAI Responses / Anthropic Messages / OpenAI-compatible).
+pub mod provider;
+/// Session FSM (one-shot headless runs).
+pub mod session;
+/// Snapshot checkpoint anchors.
+pub mod snapshot;
+/// Built-in tools (bash, apply_patch).
+pub mod tools;
 pub mod wal;
 
 pub use kalki_protocol::Event;

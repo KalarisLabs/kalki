@@ -27,6 +27,10 @@ Exact versions = `Cargo.lock`-resolved as of 2026-11-08. All Rust deps are MSRV-
 | TOML config + policy engine files | toml 1.2.1 | Parse workspace `.kalki.toml`, XDG config, and the deny-first policy TOML (v1; Cedar comes in v1.5+) | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | hand-rolled parser (rejected — why? toml is tiny and spec-pinned) | No | Sayan Chowdhury | 2027-02-08 |
 | crc32c | 0.6.9 | CRC-32C checksums for WAL record torn-write detection | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | `crc` crate (not chosen — crc32c matches RFC 3720/SCTP framing lineage) | No | Sayan Chowdhury | 2027-05-08 |
 
+| sha2 | 0.11.1 | SHA-256 for WAL hash chain + blob addressing (`kalki-core::blob`) | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | none viable | No | Sayan Chowdhury | 2027-05-08 |
+
+| futures-util | 0.3.34 | StreamExt for the provider SSE byte stream (`bytes_stream`) | Required | MIT / Apache-2.0 | Linux / macOS / Windows | Low | none viable | No | Sayan Chowdhury | 2027-05-08 |
+
 ## Git integration (decided, adopt at M2) — benchmark gate before merge
 
 | Dependency | Exact version | Purpose | Required / Optional | License | OS support | Security risk | Fallback | Benchmark needed | Owner | Removal / Review |
