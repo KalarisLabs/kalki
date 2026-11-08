@@ -237,6 +237,8 @@ fn parse_sse_line(
     None
 }
 
+// Shared with the `event:`-terminated path in decode_frame_complete; both
+// delegate to wire_compat::map_compat_event so the fast path cannot drift.
 fn decode_openai_compat_event(
     data_lines: &mut Vec<String>,
 ) -> Option<Result<ProviderEvent, ProviderError>> {
@@ -245,49 +247,33 @@ fn decode_openai_compat_event(
         Ok(v) => v,
         Err(e) => return Some(Err(ProviderError::Sse(format!("bad json: {e}")))),
     };
-    let delta = v
-        .pointer("/choices/0/delta/content")
-        .and_then(|t| t.as_str())
-        .map(str::to_string);
-    if let Some(text) = delta {
-        return Some(Ok(ProviderEvent::TextDelta(text)));
+    match wire_compat::map_compat_event(&v) {
+        Ok(Some(ev)) => Some(Ok(ev)),
+        Ok(None) => None,
+        Err(e) => Some(Err(e)),
     }
-    if let Some(tokens) = v.pointer("/usage") {
-        let get = |k: &str| {
-            tokens
-                .get(k)
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0)
-        };
-        return Some(Ok(ProviderEvent::Usage {
-            input_tokens: get("prompt_tokens"),
-            output_tokens: get("completion_tokens"),
-            cached_tokens: tokens
-                .pointer("/prompt_tokens_details/cached_tokens")
-                .and_then(serde_json::Value::as_u64),
-        }));
-    }
-    let finish = v
-        .pointer("/choices/0/finish_reason")
-        .and_then(|t| t.as_str())
-        .map(str::to_string);
-    finish.map(|reason| Ok(ProviderEvent::Finish { reason }))
 }
 
 fn decode_frame_complete(
     kind: ProviderKind,
     data_lines: &mut Vec<String>,
 ) -> Option<Result<ProviderEvent, ProviderError>> {
-    let raw = match data_lines.pop() {
-        Some(r) => r,
-        None => return None,
-    };
+    let raw = data_lines.pop()?;
     match serde_json::from_str::<serde_json::Value>(&raw) {
-        Ok(v) => Some(match kind {
-            ProviderKind::OpenAiResponses => wire_openai::map_responses_event(&v),
-            ProviderKind::AnthropicMessages => wire_anthropic::map_messages_event(&v),
-            ProviderKind::OpenAiCompat => wire_compat::map_compat_event(&v),
-        }),
+        Ok(v) => {
+            // Map fns return Ok(None) for wire frames we deliberately ignore
+            // (unknown event types); skipping them keeps the stream alive.
+            let mapped = match kind {
+                ProviderKind::OpenAiResponses => wire_openai::map_responses_event(&v),
+                ProviderKind::AnthropicMessages => wire_anthropic::map_messages_event(&v),
+                ProviderKind::OpenAiCompat => wire_compat::map_compat_event(&v),
+            };
+            match mapped {
+                Ok(Some(ev)) => Some(Ok(ev)),
+                Ok(None) => None,
+                Err(e) => Some(Err(e)),
+            }
+        }
         Err(e) => Some(Err(ProviderError::Sse(format!("bad frame json: {e}")))),
     }
 }
@@ -298,3 +284,8 @@ pub(crate) mod wire_anthropic;
 pub(crate) mod wire_compat;
 /// OpenAI Responses wire mapping (implemented in `wire_openai`).
 pub(crate) mod wire_openai;
+
+// Mod.rs re-exports only (AGENTS.md §4); the wire files own their transport + mapping.
+pub use wire_anthropic::AnthropicMessagesProvider;
+pub use wire_compat::OpenAiCompatProvider;
+pub use wire_openai::OpenAiResponsesProvider;
