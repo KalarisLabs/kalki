@@ -14,15 +14,11 @@
 //! normal runs (`#[ignore]`d + a `SCENARIO_ENV` guard). This file is the only
 //! env-touching suite in the repo (as `Command` setup, never `set_var`).
 //!
-//! # Wire order (see report)
-//! kalki-core's evented SSE decoder pops the buffered `data:` line when it sees
-//! the `event:` line, so a frame must be `data:` first, then `event:` as the
-//! terminator, then a blank line. The mock emits exactly that. The real
-//! Responses API sends `event:` first; that order breaks this decoder (first
-//! frame lost, every frame lags one behind, stream ends in
-//! `unterminated data frame`). Suspected production defect Ã¢â‚¬â€ reported,
-//! deliberately NOT patched here; the tests encode the only order the decoder
-//! survives.
+//! # Wire order
+//! The decoder flushes a frame on its terminating blank line, buffering `event:` and `data:`
+//! lines per frame — it handles both orders. These fixtures pin the
+//! order the real Responses API sends (event: first), so a regression to
+//! wire-strict single-order decoding fails here loudly.
 //!
 //! # Entry point
 //! Children use `run_from_env`. It exercises `AnyProvider::from_env` (the real
@@ -60,11 +56,12 @@ const OBJECTIVE_UNICODE: &str = "Fix the parser in src/hÃƒÂ©llo.rs so it kee
 const FINAL_TEXT_UNICODE: &str = "hÃƒÂ©llo wÃƒÂ¶rld Ã¢Å“Â¨ done";
 
 // --- SSE transcripts --------------------------------------------------------
-// Frame = `data:` line(s) then `event:` terminator then a blank line (the only
-// order `parse_sse_line` survives; see the module docs).
+// Frame = `event:` first (the order the real Responses API sends), then `data:`,
+// then a blank line to flush. The decoder flushes on the blank line and tolerates
+// both orders; these fixtures pin the production wire order.
 
 fn frame(event: &str, data: &serde_json::Value) -> String {
-    format!("data: {data}\nevent: {event}\n\n")
+    format!("event: {event}\ndata: {data}\n\n")
 }
 
 fn text_delta_frame(text: &str) -> String {

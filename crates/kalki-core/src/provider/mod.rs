@@ -129,6 +129,13 @@ pub struct ProviderStream {
     kind: ProviderKind,
     stream: std::pin::Pin<Box<dyn futures_util::Stream<Item = reqwest::Result<Vec<u8>>> + Send>>,
     buf: Vec<u8>,
+    frame: FrameState,
+}
+
+/// Buffered SSE frame: `event:` + `data:` lines land here until a blank line flushes.
+#[derive(Default)]
+struct FrameState {
+    event_type: Option<String>,
     data_lines: Vec<String>,
 }
 
@@ -159,7 +166,7 @@ impl ProviderStream {
             kind,
             stream,
             buf: Vec::with_capacity(8192),
-            data_lines: Vec::new(),
+            frame: FrameState::default(),
         }
     }
 
@@ -171,7 +178,7 @@ impl ProviderStream {
         use futures_util::StreamExt;
         loop {
             if let Some(line) = take_line(&mut self.buf) {
-                if let Some(event) = parse_sse_line(self.kind, &line, &mut self.data_lines) {
+                if let Some(event) = parse_sse_line(self.kind, &line, &mut self.frame) {
                     match event {
                         Ok(ev) => return Some(Ok(ev)),
                         Err(e) => return Some(Err(e)),
@@ -185,7 +192,7 @@ impl ProviderStream {
                     return Some(Err(ProviderError::Sse(format!("read error: {e}"))));
                 }
                 None => {
-                    return if self.data_lines.is_empty() {
+                    return if self.frame.data_lines.is_empty() {
                         None
                     } else {
                         Some(Err(ProviderError::Sse(
@@ -213,52 +220,45 @@ fn take_line(buf: &mut Vec<u8>) -> Option<String> {
     }
 }
 
+/// Route one SSE line into the frame buffer; flush the frame on its terminating blank line.
+/// Frames may arrive in either wire order (`event:` first, as the real APIs send it, or `data:`
+/// first). Unknown `data:` frames decode to `None` (ignored) and never kill the stream.
 fn parse_sse_line(
     kind: ProviderKind,
     line: &str,
-    data_lines: &mut Vec<String>,
+    frame: &mut FrameState,
 ) -> Option<Result<ProviderEvent, ProviderError>> {
-    if let Some(rest) = line.strip_prefix("data: ") {
-        data_lines.push(rest.to_string());
-        if rest == "[DONE]" {
-            return Some(Ok(ProviderEvent::Finish {
-                reason: "stop".to_string(),
-            }));
-        }
-        // A line-level fast path: most wires terminate a frame with a single data: field.
-        if kind == ProviderKind::OpenAiCompat {
-            return decode_openai_compat_event(data_lines);
-        }
-        return None; // multi-line frames: caller waits for event: terminator
+    if line.trim().is_empty() {
+        return decode_frame(kind, frame);
     }
-    if line.strip_prefix("event:").is_some() {
-        return decode_frame_complete(kind, data_lines);
+    if let Some(rest) = line.strip_prefix("data:") {
+        frame.data_lines.push(rest.trim_start().to_string());
+        return None; // wait for the blank-line flush
+    }
+    if let Some(rest) = line.strip_prefix("event:") {
+        frame.event_type = Some(rest.trim().to_string());
+        return None;
     }
     None
 }
 
-// Shared with the `event:`-terminated path in decode_frame_complete; both
-// delegate to wire_compat::map_compat_event so the fast path cannot drift.
-fn decode_openai_compat_event(
-    data_lines: &mut Vec<String>,
-) -> Option<Result<ProviderEvent, ProviderError>> {
-    let raw = data_lines.pop()?;
-    let v: serde_json::Value = match serde_json::from_str(&raw) {
-        Ok(v) => v,
-        Err(e) => return Some(Err(ProviderError::Sse(format!("bad json: {e}")))),
-    };
-    match wire_compat::map_compat_event(&v) {
-        Ok(Some(ev)) => Some(Ok(ev)),
-        Ok(None) => None,
-        Err(e) => Some(Err(e)),
-    }
-}
-
-fn decode_frame_complete(
+/// Decode one buffered frame; returns `None` when there is nothing to yield (a blank line inside
+/// an empty frame, or a deliberately ignored wire event).
+fn decode_frame(
     kind: ProviderKind,
-    data_lines: &mut Vec<String>,
+    frame: &mut FrameState,
 ) -> Option<Result<ProviderEvent, ProviderError>> {
-    let raw = data_lines.pop()?;
+    if frame.data_lines.is_empty() {
+        frame.event_type = None;
+        return None;
+    }
+    let raw = std::mem::take(&mut frame.data_lines).join("\n");
+    frame.event_type = None;
+    if raw.trim() == "[DONE]" {
+        return Some(Ok(ProviderEvent::Finish {
+            reason: "stop".to_string(),
+        }));
+    }
     match serde_json::from_str::<serde_json::Value>(&raw) {
         Ok(v) => {
             // Map fns return Ok(None) for wire frames we deliberately ignore
