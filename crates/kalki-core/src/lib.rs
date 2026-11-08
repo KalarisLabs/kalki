@@ -1,0 +1,29 @@
+//! Kalki Code harness core. No UI in here — the TUI talks to this over the protocol.
+
+#![forbid(unsafe_code)]
+
+pub mod wal;
+
+pub use kalki_protocol::Event;
+
+/// Core crate errors.
+#[derive(Debug, thiserror::Error)]
+pub enum CoreError {
+    /// The event log is corrupt (bad length-prefix or CRC mismatch).
+    #[error("wal corruption detected at offset {offset}: {reason}")]
+    WalCorruption {
+        /// Byte offset at which corruption was detected.
+        offset: u64,
+        /// Human-readable reason.
+        reason: String,
+    },
+    /// I/O failure.
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+    /// JSON (de)serialization failure.
+    #[error("serialization error: {0}")]
+    Json(#[from] serde_json::Error),
+}
+
+/// Result alias for the core crate.
+pub type Result<T> = std::result::Result<T, CoreError>;

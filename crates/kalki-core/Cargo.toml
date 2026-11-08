@@ -1,0 +1,29 @@
+[package]
+name = "kalki-core"
+description = "Harness core: WAL event log, session state, provider client, supervisor (no UI)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+
+[dependencies]
+kalki-protocol.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+async-openai.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+axum.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile = "3.23"
