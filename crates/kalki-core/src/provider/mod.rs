@@ -34,10 +34,10 @@ pub struct ChatMessage {
     pub tool_call_id: Option<String>,
 }
 
-/// A tool schema in the lowest-common-denominator form (snake_case, closed objects, `additionalProperties: false`).
+/// A tool schema in the lowest-common-denominator form (`snake_case`, closed objects, `additionalProperties: false`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolSpec {
-    /// Tool name, ≤ 48 chars snake_case.
+    /// Tool name, ≤ 48 chars `snake_case`.
     pub name: String,
     /// One-sentence description.
     pub description: String,
@@ -135,11 +135,11 @@ pub struct ProviderStream {
 /// Which wire a [`ProviderStream`] decodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProviderKind {
-    /// OpenAI Responses API (SSE, evented).
+    /// `OpenAI` Responses API (SSE, `evented`).
     OpenAiResponses,
     /// Anthropic Messages API (SSE, evented).
     AnthropicMessages,
-    /// OpenAI Chat Completions-compatible wire (SSE, `data:` lines).
+    /// `OpenAI-compatible Chat Completions` wire (SSE, `data:` lines).
     OpenAiCompat,
 }
 
@@ -168,6 +168,7 @@ impl ProviderStream {
     /// # Errors
     /// Decode or I/O failure mid-stream.
     pub async fn next_event(&mut self) -> Option<Result<ProviderEvent, ProviderError>> {
+        use futures_util::StreamExt;
         loop {
             if let Some(line) = take_line(&mut self.buf) {
                 if let Some(event) = parse_sse_line(self.kind, &line, &mut self.data_lines) {
@@ -178,7 +179,6 @@ impl ProviderStream {
                 }
                 continue;
             }
-            use futures_util::StreamExt;
             match self.stream.next().await {
                 Some(Ok(chunk)) => self.buf.extend_from_slice(&chunk),
                 Some(Err(e)) => {
@@ -278,10 +278,7 @@ fn decode_frame_complete(
     kind: ProviderKind,
     data_lines: &mut Vec<String>,
 ) -> Option<Result<ProviderEvent, ProviderError>> {
-    let raw = match data_lines.pop() {
-        Some(r) => r,
-        None => return None,
-    };
+    let raw = data_lines.pop()?;
     match serde_json::from_str::<serde_json::Value>(&raw) {
         Ok(v) => Some(match kind {
             ProviderKind::OpenAiResponses => wire_openai::map_responses_event(&v),

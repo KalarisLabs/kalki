@@ -60,11 +60,8 @@ pub struct RunOutcome {
 /// The session loop. v0.2 implementation task P7 — see docs/ARCHITECTURE.md.
 ///
 /// # Errors
-/// Provider or WAL failures abort the run; the WAL always holds the truth of what happened.
-pub async fn run_one_shot<P: Provider>(
-    _opts: RunOptions<P>,
-) -> Result<RunOutcome, crate::CoreError> {
-    let _ = _opts;
+/// Always in v0.2 (the loop lands with task P7); typed so the stub stays honest.
+pub fn run_one_shot<P: Provider>(_opts: &RunOptions<P>) -> Result<RunOutcome, crate::CoreError> {
     Err(crate::CoreError::WalCorruption {
         offset: 0,
         reason: "session loop not implemented yet (task P7)".to_string(),

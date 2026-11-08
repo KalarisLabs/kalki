@@ -109,15 +109,16 @@ impl PolicyEngine {
                 continue;
             }
             if let Some(cmd) = req.command {
-                let argv0 = cmd.first().map(String::as_str).unwrap_or("");
+                let argv0 = cmd.first().map_or("", String::as_str);
                 if !rule.commands.is_empty() && !rule.commands.iter().any(|c| argv0 == c) {
                     continue;
                 }
             }
-            if let Some(path) = req.path {
-                if !rule.paths.is_empty() && !rule.paths.iter().any(|p| path_starts_with(path, p)) {
-                    continue;
-                }
+            if let Some(path) = req.path
+                && !rule.paths.is_empty()
+                && !rule.paths.iter().any(|p| path_starts_with(path, p))
+            {
+                continue;
             }
             if rule.network && !req.network {
                 continue;
