@@ -9,13 +9,15 @@ Targets, not promises. Semver starts at v0.1.0; **1.0 = stability contract, not 
 - [ ] docs/PROPOSAL.md + docs/ARCHITECTURE.md + ADRs 0001–0003
 - [ ] License dual MIT/Apache-2.0, DCO, NOTICE
 
-## v0.2.0 — The session loop (M1, Dec 2026)
-- [ ] Daemon + worker-per-session (tokio + ractor); attach/detach; `/tree` resume
-- [ ] WAL segments (CRC-framed JSONL) + redb snapshot index + replay-on-boot <5 s
-- [ ] Provider layer v1 (OpenAI Responses + Anthropic Messages + OpenAI-compatible: Kimi/GLM/DeepSeek/xAI/Ollama)
-- [ ] Minimal tool loop (bash + file edit via apply_patch) behind policy grants
-- [ ] TUI v1 (ratatui, inline mode): token streaming, approval modals
-- [ ] 50-task SWE-bench Pro slice + harness-CI (mock-model parity)
+## v0.2.0 — The session loop (M1–M2, Nov–Dec 2026) — **landed on main, tag pending final P9**
+- [x] WAL segments (CRC-framed JSONL) + replay + torn-write repair (`impl/wal` merged; snapshot anchor API in `kalki-core::snapshot`; redb index lands with hash-chain milestone)
+- [x] Provider layer v1 (OpenAI Responses + Anthropic Messages + OpenAI-compatible: Kimi/GLM/DeepSeek/xAI/Ollama — `AnyProvider` via `KALKI_PROVIDER`)
+- [x] Minimal tool loop (bash + apply_patch behind deny-first policy grants)
+- [ ] Mock-model e2e + kill -9 recovery suite on main (in flight)
+- [ ] TUI v1 (ratatui, inline mode) — deferred to v0.3; v0.2 ships headless `kalki run`
+- [ ] 50-task SWE-bench Pro slice + harness-CI (mock-model parity) — M2 gate
+- [ ] Attach/detach daemon + worker reuse across invocations — v0.2.x then v0.3
+
 
 ## v0.3.0 — Memory & context (M2, Jan 2027)
 - [ ] Subtask-tree context compiler (Spine-style, JIT, masking > summarization)
