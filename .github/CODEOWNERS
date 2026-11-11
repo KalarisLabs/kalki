@@ -1,0 +1,9 @@
+# Every change needs a maintainer review. The paths below are called out because
+# a mistake there weakens the audit trail or the supply chain.
+*                                 @saynchowdhury
+/.github/workflows/               @saynchowdhury
+/deny.toml                        @saynchowdhury
+/DEPENDENCIES.md                  @saynchowdhury
+/crates/kalki-protocol/           @saynchowdhury
+/crates/kalki-core/src/wal.rs     @saynchowdhury
+/crates/kalki-core/src/policy.rs  @saynchowdhury

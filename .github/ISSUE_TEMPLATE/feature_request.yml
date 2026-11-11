@@ -1,0 +1,35 @@
+name: Feature request
+description: A capability Kalki should have.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you cannot do today, and what it costs you. Describe the problem before the solution.
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Smallest change that solves it
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Kernel (log, policy, sandbox)
+        - Executors
+        - Providers and models
+        - Context
+        - Admission gate
+        - Terminal UI
+        - Release and packaging
+        - Docs
+    validations: { required: true }
+  - type: checkboxes
+    id: adr
+    attributes:
+      label: Scope
+      options:
+        - label: This changes the wire protocol, the log format, the policy engine, or the admission gate. It needs an ADR in `docs/adr/` before code.
