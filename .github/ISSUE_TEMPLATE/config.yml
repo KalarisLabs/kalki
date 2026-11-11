@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/KalarisLabs/kalki/security/advisories/new
+    about: Report privately. Do not open a public issue for a vulnerability.
+  - name: Question or design discussion
+    url: https://github.com/KalarisLabs/kalki/discussions
+    about: Ask questions and propose architecture changes here first.

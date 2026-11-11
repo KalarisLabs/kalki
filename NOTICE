@@ -1,0 +1,38 @@
+Kalki — a self-improving coding harness with admission control
+Copyright (c) 2026 Sayan Chowdhury / Kalaris Labs
+
+Licensed under either of the MIT license (LICENSE-MIT) or the Apache License,
+Version 2.0 (LICENSE-APACHE), at your option.
+
+Kalki's design is informed by the following work. Kalki includes no code from
+any of these projects.
+
+- Pi — https://github.com/earendil-works/pi
+  Copyright (c) Mario Zechner and Earendil Works. License: MIT.
+  Kalki's minimal tool loop (few tools, a short system prompt, an append-only
+  session log, hierarchical context files) is inspired by Pi. Kalki plans to
+  run Pi as an external process over Pi's documented RPC protocol
+  (docs/adr/0004-executors-and-pi.md). Pi is not bundled or linked.
+
+- Prime Agent — https://github.com/PrimeIntellect-ai/prime-agent
+  Copyright (c) 2025-2026 Prime Intellect Ltd. License: MIT.
+  Kalki's workspace layout (a shared protocol crate with a one-way crate
+  graph) is informed by the Prime Agent Rust rewrite and its technical report
+  (arXiv:2608.23552).
+
+- Codex CLI — https://github.com/openai/codex
+  Copyright (c) OpenAI. License: Apache-2.0.
+  Kalki's approach to terminal frame testing and platform sandboxing is
+  informed by Codex CLI.
+
+- The research papers listed in docs/research/LITERATURE.md.
+
+Agent skills under .agents/skills/ are third-party works under their own
+licenses. Their sources are recorded in skills-lock.json.
+
+Third-party Rust crates are used under their own licenses. See
+DEPENDENCIES.md and deny.toml.
+
+"Kalki" is a trademark of Kalaris Labs. Pi, Prime Agent, and Codex are
+trademarks of their respective owners. No affiliation or endorsement is
+claimed or implied.

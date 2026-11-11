@@ -1,0 +1,42 @@
+# cargo-deny policy. CI runs `check bans licenses sources` per PR (ci.yml) and
+# `check advisories` on a daily schedule (audit.yml).
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-musl",
+    "aarch64-unknown-linux-musl",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]
+
+[advisories]
+ignore = []
+
+[licenses]
+# Permissive only. Adding a license here is a governance decision: PR + maintainer sign-off.
+allow = [
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+# DEPENDENCIES.md "Explicitly rejected". TLS is rustls-only.
+deny = [
+    { crate = "openssl-sys", reason = "rustls only; no native TLS" },
+    { crate = "native-tls", reason = "rustls only; no native TLS" },
+    { crate = "git2", reason = "C dependency; use gix or the git CLI" },
+    { crate = "sled", reason = "unmaintained" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
