@@ -1,28 +1,38 @@
-Kalki Code — a self-recursive continual coding harness
+Kalki — a self-improving coding harness with admission control
 Copyright (c) 2026 Sayan Chowdhury / Kalaris Labs
 
-This product includes or is inspired by the following:
+Licensed under either of the MIT license (LICENSE-MIT) or the Apache License,
+Version 2.0 (LICENSE-APACHE), at your option.
+
+Kalki's design is informed by the following work. Kalki includes no code from
+any of these projects.
+
+- Pi — https://github.com/earendil-works/pi
+  Copyright (c) Mario Zechner and Earendil Works. License: MIT.
+  Kalki's minimal tool loop (few tools, a short system prompt, an append-only
+  session log, hierarchical context files) is inspired by Pi. Kalki plans to
+  run Pi as an external process over Pi's documented RPC protocol
+  (docs/adr/0004-executors-and-pi.md). Pi is not bundled or linked.
 
 - Prime Agent — https://github.com/PrimeIntellect-ai/prime-agent
   Copyright (c) 2025-2026 Prime Intellect Ltd. License: MIT.
-  Kalki Code's architecture (worker-per-session supervisor, shared protocol
-  crate, catalog-driven models, Turso-style session reattachment, and the
-  Planner/Implementer/Reviewer/Verifier orchestration with differential
-  parity testing) is inspired by the Prime Agent Rust rewrite described in
-  https://www.primeintellect.ai/blog/prime-agent-rust/ and the Prime Agent
-  technical report (arXiv:2608.23552). No Prime Agent code is included.
+  Kalki's workspace layout (a shared protocol crate with a one-way crate
+  graph) is informed by the Prime Agent Rust rewrite and its technical report
+  (arXiv:2608.23552).
 
-- Pi (@earendil-works/pi) — https://github.com/earendil-works/pi
-  Copyright (c) Mario Zechner. License: MIT.
-  Kalki Code's minimalist tool-loop design (bash-first, tiny system prompt,
-  append-only session log, hierarchical context files) is inspired by Pi.
-  No Pi code is included.
+- Codex CLI — https://github.com/openai/codex
+  Copyright (c) OpenAI. License: Apache-2.0.
+  Kalki's approach to terminal frame testing and platform sandboxing is
+  informed by Codex CLI.
 
-- The Rust implementation recommendations draw on the public 2026 ecosystem:
-  tokio, reqwest, rustls, rusqlite, fjall, redb, ratatui, wasmtime, Temporal
-  (temporalio-sdk), and others — each under its own license as listed in
-  DEPENDENCIES.md.
+- The research papers listed in docs/research/LITERATURE.md.
 
-"Kalki" and "Kalki Code" are trademarks of Kalaris Labs. Prime Agent and Pi
-are trademarks of their respective owners; no affiliation or endorsement is
+Agent skills under .agents/skills/ are third-party works under their own
+licenses. Their sources are recorded in skills-lock.json.
+
+Third-party Rust crates are used under their own licenses. See
+DEPENDENCIES.md and deny.toml.
+
+"Kalki" is a trademark of Kalaris Labs. Pi, Prime Agent, and Codex are
+trademarks of their respective owners. No affiliation or endorsement is
 claimed or implied.

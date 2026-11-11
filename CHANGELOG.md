@@ -1,29 +1,48 @@
 # Changelog
 
-All notable changes to Kalki Code. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versions follow SemVer. v0.x = pre-stable; breaking changes may land in minors.
+All notable changes to Kalki. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+While the version is `0.0.x`, any release may break anything.
 
-## [Unreleased] — v0.2.0 (session loop landed on main, tag pending P9)
+## [Unreleased]
+
+## [0.0.1] - unreleased
+
+The first public release. A headless agent loop on a durable log. No terminal
+UI, no sandbox, no self-improvement yet.
 
 ### Added
-- v0.2 event variants `ToolCall`, `ToolResult`, `Usage`, `Anchor` in `kalki-protocol` (hash-chain wiring deferred to v0.3)
-- Mock-model e2e + kill -9 drill + turn-cap/torn-stream tests on main (`cargo test --test e2e_mock`, 5 tests, `ef8879b`)
-- **Fixed: SSE decoder now flushes on blank line (both wire orders — previously only `data:`-first transcripts decoded; the real Responses/Anthropic `event:`-first order lost every frame) — caught by the e2e suite, fixed in `provider/mod.rs`**
-- WAL segment layer: CRC32C framing, 64 MiB rotation, torn-tail repair at open, `replay_segment`, kill -9 drills (11 tests) - branch merged (`impl/wal`)
-- Provider wires with `AnyProvider` env selection (`KALKI_PROVIDER`): OpenAI Responses, Anthropic Messages, OpenAI-compatible Chat Completions — hand-rolled SSE decoding, cached-token accounting, `idx:N` tool-arg correlation — 45 unit tests (`impl/providers`)
-- Tool layer: deny-first TOML policy engine (duplicate-rule detection, multi-token argv prefixes, scrubbing), argv-spawned `bash` runner with workspace confinement + 4 KiB inline cap + blob overflow, `apply_patch` v1 — 28 tests (`impl/tools`)
-- Session FSM (`kalki_core::session`): user objective → model turns interleaved with gated tool calls → WAL; turn cap; abort markers in WAL; `run_from_env`
-- `kalki run -p "..." --model --max-turns` headless one-shot; `kalki doctor` env checks
-- `.changes/` fragments; `cargo xtask ci` gate green (fmt, clippy `-D warnings`, tests, docs)
-- ADR-0003 (Cedar policy, v1.5 sketch)
+
+- `kalki run -p "<objective>" [--model] [--max-turns]`: one headless session against the configured provider.
+- `kalki doctor`: environment checks.
+- Event log: length-prefixed JSONL records with CRC32C, segments that rotate at 64 MiB, torn-tail repair at open, replay, and kill drills.
+- Event types: `Message`, `ToolCall`, `ToolResult`, `Usage`, `Compaction`, `Lifecycle`, `Anchor`.
+- Content-addressed blob store. Tool output over 4 KiB is stored by SHA-256 and referenced by handle.
+- Deny-first policy engine in TOML with stable rule IDs, duplicate-rule detection, and multi-token command prefixes.
+- Tools: `bash` (argv array, workspace path confinement, policy-checked) and `apply_patch` (workspace path confinement; not yet policy-checked).
+- Provider wires, hand-written on `reqwest`: OpenAI Responses, Anthropic Messages, OpenAI-compatible Chat Completions. Selected with `KALKI_PROVIDER`. Cached-token accounting.
+- Session loop: objective, model turns, policy-checked tool calls, turn cap, abort markers.
+- End-to-end tests against a loopback mock model server.
+- CI: format, clippy, tests on Linux x86_64 and aarch64, macOS Apple Silicon and Intel, and Windows; MSRV 1.88; rustdoc; `cargo-deny`; DCO check.
+- Release workflow: five targets, `SHA256SUMS`, build provenance attestation, draft pre-release.
+- `cargo xtask lint`: a file-size ratchet with remediation text.
+- Documentation: architecture, product proposal, whitepaper proposal, compatibility matrix, terminal UI specification, literature map, release guide, ADRs 0001 to 0006.
+- Community files: code of conduct, governance, support, issue and pull request templates, code owners, dependabot.
+- Agent skills in `.agents/skills/`, including `caveman` and `ponytail`.
 
 ### Changed
-- Distribution for v0.x is **GitHub Releases only** (cargo dist + minisign); Homebrew/npm/crates.io deferred to 1.0
-- `cargo xtask ci` now also gates on `clippy --all-targets -D warnings` being clean workspace-wide
+
+- The version is `0.0.1`. The workspace was numbered `0.1.0` and never released (ADR-0005).
+- The repository is `github.com/KalarisLabs/kalki`.
+- `cargo xtask ci` runs rustdoc with `-D warnings`, matching CI.
+
+### Fixed
+
+- The SSE decoder flushes on a blank line for both field orders. Streams that send `event:` before `data:` previously lost every frame.
+- The CI workflow pinned an `actions/checkout` commit that does not exist. All actions are now pinned to verified commits.
+- Four broken intra-doc links that failed the rustdoc job.
+- The workspace did not build on its declared MSRV. An unused dependency required Rust 1.89, and one test relied on newer temporary-lifetime rules.
+- Double-encoded UTF-8 in the end-to-end test file, including the fixture for the Unicode round-trip test.
 
 ### Removed
-- Trademark-clearance milestone dropped (GitHub Releases is the release channel for v0.x)
 
-## [0.1.0] - 2026-11-08
-
-### Added
-- Initial workspace: `kalki-protocol`, `kalki-core`, `kalki` (doctor), `xtask`; WAL record codec (pre-CRC); CI; dual license; NOTICE; AGENTS.md; DEPENDENCIES.md
+- `rusqlite`, `async-openai`, and `tracing-appender` were declared and never used. `axum` is now a dev-dependency.

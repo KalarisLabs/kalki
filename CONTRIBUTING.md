@@ -1,43 +1,86 @@
-# Contributing to Kalki Code
+# Contributing to Kalki
 
-Thanks for helping build the harness better agents deserve. Kalaris Labs welcomes all contributions under DCO.
+Contributions are welcome, from people and from coding agents directed by
+people. Kalki is pre-release (v0.0.x), so the most useful contributions right
+now are bug reports, compatibility reports for models and platforms, and small
+fixes.
 
 ## Before you write code
 
-1. Read `AGENTS.md` (rules), `docs/ARCHITECTURE.md` (structure), and `DEPENDENCIES.md` (what you may add).
-2. Open an issue or discussion first for anything touching: wire protocol, WAL format, permissions/sandbox, self-recursion gates, or licensing.
-3. Breaking changes require an accepted RFC in `docs/rfc/`.
+1. Read [AGENTS.md](AGENTS.md). Its rules are binding and CI checks most of them.
+2. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), especially section 12,
+   which lists what exists today.
+3. Check [ROADMAP.md](ROADMAP.md). Work that belongs to a later milestone is
+   likely to be asked to wait.
+4. Open an issue or a discussion before changing the event types, the log
+   format, the policy engine, executors, the admission gate, or the license.
+   Those changes need an ADR in `docs/adr/`. Copy `0000-template.md`.
 
-## Developer Certificate of Origin
+## Set up
 
-Every commit must carry a DCO sign-off:
-
-```bash
-git commit -s -m "feat(core): WAL segment rotation"
-```
-
-By signing off you certify the Developer Certificate of Origin 1.1 (https://developercertificate.org). We do not use a CLA.
-
-## The gate
+You need Rust 1.88 or newer, a C compiler, and `git`.
 
 ```bash
-cargo xtask ci   # formats, lints, tests, doc build — must pass locally
+git clone https://github.com/KalarisLabs/kalki
+cd kalki
+cargo xtask ci
 ```
 
-Rules agents may rely on:
+`cargo xtask ci` runs the format check, the file-size lint, clippy, the tests,
+and rustdoc. It needs no network and no API key: tests run against a mock
+model server on loopback.
 
-- TUI crate sees only `kalki-protocol` types. No business logic in the TUI.
-- Persistence goes through the WAL only. No hidden files, no side channels.
-- Library crates never use `unwrap`/`expect`/`panic` outside tests.
-- Every dependency change updates `DEPENDENCIES.md` and needs maintainer sign-off.
-- No `unsafe_code` (workspace `forbid`), except in crates explicitly granted it in `docs/adr/`.
+Optional, to match CI exactly:
 
-## Commit and PR style
+```bash
+cargo install cargo-deny --locked && cargo deny check
+rustup toolchain install 1.88.0 && cargo +1.88.0 check --workspace --all-targets --locked
+```
 
-- Conventional Commits (`feat|fix|docs|refactor|test|perf|ci|chore`).
-- Small PRs; one logical change; add/extend tests; update `CHANGELOG.md` (Keep a Changelog).
-- PR template checklist: tests, docs, DEPENDENCIES.md if deps changed, security notes if sandbox/policy touched.
+## Make the change
+
+- One logical change per pull request. Small is good.
+- Add a test that fails without your change.
+- Add a line to `CHANGELOG.md` under `[Unreleased]` if behaviour changed.
+- If you add or update a dependency, update [DEPENDENCIES.md](DEPENDENCIES.md)
+  and say why in the pull request.
+- Use [Conventional Commits](https://www.conventionalcommits.org):
+  `feat`, `fix`, `docs`, `refactor`, `test`, `perf`, `ci`, `chore`.
+
+## Sign your commits
+
+Every commit must carry a Developer Certificate of Origin sign-off:
+
+```bash
+git commit -s -m "fix(core): repair torn tail before rotation"
+```
+
+By signing off you certify the
+[DCO 1.1](https://developercertificate.org). There is no CLA. CI rejects pull
+requests with unsigned commits.
+
+If a coding agent wrote the change, the person directing it signs off, and the
+commit names the agent in a `Co-Authored-By` trailer.
+
+## Open the pull request
+
+Push to your fork and open a pull request against `main`. The template asks
+for three lists: what you measured, what you assumed, and what you did not
+verify. Fill in all three. "Unmeasured" is an acceptable answer. A missing
+list is not.
+
+Reviews argue against the change on purpose. That is the process, not a
+judgment of the contributor.
+
+## Reporting compatibility
+
+A report that a model, a provider, a terminal, or a platform works or fails is
+a contribution. Open an issue with the output of `kalki doctor`, the provider
+settings without the key, and what happened.
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) marks a row "Verified" only
+when someone has reported it.
 
 ## Security
 
-Please report vulnerabilities privately via `SECURITY.md`. Do not open public issues for them.
+Report vulnerabilities privately. See [SECURITY.md](SECURITY.md). Do not open a
+public issue for them.
