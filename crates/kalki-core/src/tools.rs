@@ -35,7 +35,7 @@ pub struct ToolContext {
 /// Arguments to the bash tool (argv array; no shell string by design).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BashArgs {
-    /// Program + args; argv[0] is the program. Never a shell string — models must not get implicit `sh -c`.
+    /// Program + args; `argv[0]` is the program. Never a shell string — models must not get implicit `sh -c`.
     pub argv: Vec<String>,
     /// Timeout in seconds (hard cap 120; default 30).
     #[serde(default = "default_timeout")]
@@ -149,7 +149,7 @@ pub async fn run_bash(
         }
         Decision::NeedsApproval { rule } => {
             return Err(ToolError::Policy(format!(
-                "rule `{rule}` requires interactive approval (headless v0.2: treated as denied)"
+                "rule `{rule}` requires interactive approval (headless mode: treated as denied)"
             )));
         }
     }

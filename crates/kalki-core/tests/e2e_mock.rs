@@ -1,14 +1,14 @@
 //! Mock-model end-to-end tests: real HTTP provider wire against a loopback
-//! axum mock Ã¢â‚¬â€ no real network, no real API keys.
+//! axum mock — no real network, no real API keys.
 //!
 //! # Process model (why the children exist)
 //! Edition 2024 makes `std::env::set_var` `unsafe`, and the workspace sets
-//! `unsafe_code = "forbid"` (it reaches test targets) Ã¢â‚¬â€ the tests cannot mutate
+//! `unsafe_code = "forbid"` (it reaches test targets) — the tests cannot mutate
 //! process env in-process. Every scenario therefore spawns this test binary as
 //! a child (`--ignored child_<name> --exact`) with the full `KALKI_*` /
 //! `OPENAI_*` env populated for the child only (`Command::envs`, which is safe).
-//! The child runs the real pipeline (`run_from_env` Ã¢â€ â€™ `AnyProvider::from_env`
-//! Ã¢â€ â€™ provider Ã¢â€ â€™ SSE decode Ã¢â€ â€™ session loop Ã¢â€ â€™ WAL) against the parent's mock.
+//! The child runs the real pipeline (`run_from_env` → `AnyProvider::from_env`
+//! → provider → SSE decode → session loop → WAL) against the parent's mock.
 //! Parents assert the child's exit status and independently audit the WAL; the
 //! children assert the outcome and WAL semantics. `child_*` tests no-op in
 //! normal runs (`#[ignore]`d + a `SCENARIO_ENV` guard). This file is the only
@@ -27,7 +27,7 @@
 //! empty dir so the default policy is the built-in preamble (allows `cargo`),
 //! not whatever `policy.toml` the real user profile happens to carry.
 //!
-//! Tests 1Ã¢â‚¬â€œ3/5 run `cargo --version` as the gated bash tool: cargo exists by
+//! Tests 1–3/5 run `cargo --version` as the gated bash tool: cargo exists by
 //! definition wherever `cargo test` runs, and the preamble allows it. (The
 //! `cmd /C` / `sh -c` fallback was considered and rejected: neither name is in
 //! the preamble allow-list, so the tool would be policy-denied.)
@@ -52,8 +52,8 @@ use serde_json::json;
 const SCENARIO_ENV: &str = "KALKI_E2E_CHILD";
 const OBJECTIVE_TOOL_CALL: &str = "kalki e2e mock: check the toolchain version, then stop";
 const OBJECTIVE_TURN_CAP: &str = "kalki e2e mock: keep calling the bash tool forever";
-const OBJECTIVE_UNICODE: &str = "Fix the parser in src/hÃƒÂ©llo.rs so it keeps Ã¢â‚¬Å“quotesÃ¢â‚¬Â and Ã°Å¸Â¦â‚¬ emoji Ã¢â‚¬â€ cafÃƒÂ© users report ÃƒÂ© is dropped silently.";
-const FINAL_TEXT_UNICODE: &str = "hÃƒÂ©llo wÃƒÂ¶rld Ã¢Å“Â¨ done";
+const OBJECTIVE_UNICODE: &str = "Fix the parser in src/héllo.rs so it keeps “quotes” and 🦀 emoji — café users report é is dropped silently.";
+const FINAL_TEXT_UNICODE: &str = "héllo wörld ✨ done";
 
 // --- SSE transcripts --------------------------------------------------------
 // Frame = `event:` first (the order the real Responses API sends), then `data:`,
@@ -115,7 +115,7 @@ fn text_turn(text: &str, input_tokens: u64, output_tokens: u64) -> String {
 }
 
 /// Torn stream: the final `data:` frame lands but the connection dies before the
-/// `event:` terminator Ã¢â‚¬â€ the decoder must surface an error, not a hang.
+/// `event:` terminator — the decoder must surface an error, not a hang.
 fn torn_stream_transcript() -> String {
     let mut out = text_delta_frame("partial");
     let dangling = json!({"type": "response.completed", "response": {"usage": {"input_tokens": 11, "output_tokens": 7}}});

@@ -1,6 +1,6 @@
 [package]
 name = "kalki-protocol"
-description = "Shared wire/event types for the Kalki Code harness (client/daemon/worker compile against these)"
+description = "Shared wire/event types for the Kalki harness"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

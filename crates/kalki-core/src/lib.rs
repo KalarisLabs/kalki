@@ -1,4 +1,4 @@
-//! Kalki Code harness core. No UI in here — the TUI talks to this over the protocol.
+//! Kalki harness core. No UI in here — the TUI talks to this over the protocol.
 
 #![forbid(unsafe_code)]
 

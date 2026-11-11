@@ -13,13 +13,9 @@ authors.workspace = true
 kalki-protocol.workspace = true
 tokio.workspace = true
 reqwest.workspace = true
-async-openai.workspace = true
-rusqlite.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-tracing-subscriber.workspace = true
-axum.workspace = true
 thiserror.workspace = true
 toml = "1.2.1"
 crc32c = "0.6.9"
@@ -30,4 +26,5 @@ futures-util = "0.3.34"
 workspace = true
 
 [dev-dependencies]
+axum.workspace = true
 tempfile = "3.23"

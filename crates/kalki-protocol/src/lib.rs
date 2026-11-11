@@ -1,4 +1,4 @@
-//! Wire and event types shared by every Kalki Code process.
+//! Wire and event types shared by every Kalki process.
 //!
 //! Invariants:
 //! - Every durable event is an [`Event`], serialized with `#[serde(tag = "v")]`.

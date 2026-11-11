@@ -1,8 +1,8 @@
-//! Provider wires. Every call site in kalki-core uses this module (ADR-0002);
-//! async-openai stays quarantined behind the trait until the conformance suite signs off.
+//! Provider wires. Every call site in kalki-core uses this module (ADR-0002).
+//! All three wires are hand-rolled on reqwest; no provider SDK is linked.
 //!
-//! Streaming: [`ProviderStream`] is a hand-rolled async iterator (no `Stream` trait) —
-//! `bytes_stream()` + line decoding, normalized into [`ProviderEvent`].
+//! Streaming: `ProviderStream` is a hand-rolled async iterator (no `Stream` trait) —
+//! `bytes_stream()` + line decoding, normalized into `ProviderEvent`.
 
 use serde::{Deserialize, Serialize};
 

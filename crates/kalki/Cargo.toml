@@ -1,6 +1,6 @@
 [package]
 name = "kalki"
-description = "Kalki Code — the `kalki` terminal coding harness (CLI + TUI client)"
+description = "Kalki — the `kalki` command-line coding harness"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

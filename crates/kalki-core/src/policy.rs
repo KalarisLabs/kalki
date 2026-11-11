@@ -54,7 +54,7 @@ pub struct Policy {
 pub struct ToolRequest<'a> {
     /// Tool name (e.g. `bash`).
     pub tool: &'a str,
-    /// Command argv when the tool is `bash` (argv[0] is the program).
+    /// Command argv when the tool is `bash` (`argv[0]` is the program).
     pub command: Option<&'a [String]>,
     /// Target path when the tool touches the filesystem.
     pub path: Option<&'a str>,
@@ -197,9 +197,11 @@ mod tests {
     #[test]
     fn denies_everything_when_policy_is_empty() {
         let engine = engine("rules = []");
+        // Named binding: the inline temporary only compiles on rustc newer than the MSRV.
+        let argv = ["cargo".to_string()];
         let req = ToolRequest {
             tool: "bash",
-            command: Some(&["cargo".to_string()]),
+            command: Some(&argv),
             path: None,
             network: false,
         };

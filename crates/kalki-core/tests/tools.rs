@@ -129,7 +129,7 @@ async fn bash_is_denied_when_ask_rule_matches_headless_v02() {
     };
     let err = run_bash(&ctx, &policy, args)
         .await
-        .expect_err("ask is headless-deny in v0.2");
+        .expect_err("ask is denied in headless mode");
     match err {
         ToolError::Policy(message) => assert!(message.contains("ask-cargo-publish")),
         other => panic!("expected policy error, got: {other}"),

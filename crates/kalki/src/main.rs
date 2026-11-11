@@ -1,4 +1,4 @@
-//! `kalki` — the Kalki Code CLI. v0.2: doctor + run (headless one-shot).
+//! `kalki` — the Kalki CLI: doctor + run (headless one-shot).
 
 #![forbid(unsafe_code)]
 
@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-/// Kalki Code — a self-recursive continual coding harness.
+/// Kalki — a coding harness built for gated self-improvement.
 #[derive(Parser, Debug)]
 #[command(name = "kalki", version, about, long_about = None)]
 struct Cli {
@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
                 );
             }
             println!("sessions: {}", session_dir().display());
-            println!("status: v0.2 — one-shot session loop live (`kalki run -p ...`)");
+            println!("status: headless one-shot session loop (`kalki run -p ...`); no TUI yet");
         }
         Commands::Run {
             objective,

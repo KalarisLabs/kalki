@@ -1,7 +1,7 @@
 [package]
 name = "xtask"
-description = "Kalki Code repo automation (cargo xtask ...). std-only."
-version = "0.1.0"
+description = "Kalki repo automation (cargo xtask ...). std-only."
+version = "0.0.1"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT OR Apache-2.0"
